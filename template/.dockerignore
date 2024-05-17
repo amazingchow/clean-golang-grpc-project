@@ -1,0 +1,10 @@
+.env
+.env.local
+.env.secret
+.env.shared
+.locks
+.logs
+.persistent
+.shares
+unit_test_coverage.txt
+*.log

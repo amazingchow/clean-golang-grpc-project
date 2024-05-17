@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option go_package = "{{RepoBase}}/{{RepoGroup}}/{{RepoName}}/internal/proto_gens";
+
+package {{ServiceNameInUnderScoreCase}};
+
+message PingRequest {}
+
+message PongResponse {}
+
+/* clang-format off */
+service {{ServiceNameInCamelCase}} {
+  rpc Ping(PingRequest) returns (PongResponse) {}
+}
+/* clang-format on */

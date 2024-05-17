@@ -1,0 +1,13 @@
+{
+    "deployment_env": "dev",
+    "service_name": "{{ServiceName}}",
+    "service_grpc_endpoint": "0.0.0.0:{{ServiceGrpcPort}}",
+    "enable_http_gateway": true,
+    "service_http_endpoint": "0.0.0.0:{{ServiceHttpPort}}",
+    "service_metrics_endpoint": "0.0.0.0:{{ServiceMetricsPort}}",
+	"log_level": "debug",
+    "log_pretty": false,
+    "log_printer": "console",
+    "log_printer_filename": "./{{ServiceName}}.log",
+    "enable_reflection": true
+}
