@@ -3,7 +3,7 @@ services:
   infra-{{ServiceName}}:
     image: infra-{{ServiceName}}:${IMAGE_VERSION}
     container_name: infra-{{ServiceName}}
-    command: /app/{{ServiceName}} -f /app/config/{{ServiceName}}.json
+    command: /app/{{ServiceName}} -conf /app/config/{{ServiceName}}.json
     ports:
       - {{ServiceGrpcPort}}:{{ServiceGrpcPort}}
       - {{ServiceHttpPort}}:{{ServiceHttpPort}}

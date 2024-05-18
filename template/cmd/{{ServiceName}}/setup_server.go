@@ -26,14 +26,16 @@ const (
 	_DefaultSrvKeepaliveTimeout    = 2 * time.Minute
 )
 
-func setupGrpcService(ctx context.Context, wg *sync.WaitGroup, stopCh chan struct{}) {
+func setupGrpcService(_ context.Context, wg *sync.WaitGroup, stopCh chan struct{}) {
 	defer wg.Done()
 
+	// Set up a tcp connection to the server.
 	l, err := net.Listen("tcp", config.GetConfig().ServiceGrpcEndpoint)
 	if err != nil {
 		logger.GetGlobalLogger().WithError(err).Fatal("Failed to start grpc service.")
 	}
 
+	// gRPC server options, such as TLS, keepalive, etc.
 	opts := []grpc.ServerOption{
 		grpc.MaxSendMsgSize(_DefaultMaxSendMsgSize),
 		grpc.MaxRecvMsgSize(_DefaultMaxRecvMsgSize),
@@ -49,20 +51,26 @@ func setupGrpcService(ctx context.Context, wg *sync.WaitGroup, stopCh chan struc
 			interceptor.RecoverPanicAndReportLatencyUnaryInterceptor,
 		)),
 	}
+	// Create a gRPC server.
 	grpcServer := grpc.NewServer(opts...)
+	// Register the service.
 	proto_gens.Register{{ServiceNameInCamelCase}}Server(grpcServer, service.Get{{ServiceNameInCamelCase}}Impl())
-	reflection.Register(grpcServer)
+	if config.GetConfig().EnableReflection {
+		reflection.Register(grpcServer)
+	}
 
-	logger.GetGlobalLogger().Infof("grpc service is running @\x1b[1;31m%s\x1b[0m",
-		config.GetConfig().ServiceHttpEndpoint)
 	go func() {
+		// Listen on the given address and port.
 		if err := grpcServer.Serve(l); err != nil {
 			logger.GetGlobalLogger().
-				WithError(err).Error("Failed to serve grpc service.")
+				WithError(err).Error("Failed to serve {{ServiceNameInCamelCase}}.")
 		}
 	}()
+	logger.GetGlobalLogger().Infof("Server started, listening on %s.",
+		config.GetConfig().ServiceGrpcEndpoint)
+	logger.GetGlobalLogger().Infof("Started {{ServiceNameInCamelCase}} Server 🤘.")
 
 	<-stopCh
 	grpcServer.GracefulStop()
-	logger.GetGlobalLogger().Info("Stop grpc service.")
+	logger.GetGlobalLogger().Warning("Stopped {{ServiceNameInCamelCase}} Server.")
 }

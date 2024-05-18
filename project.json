@@ -1,9 +1,9 @@
 {
-    "Name": "wechat-pay-callback-service",
+    "Name": "wechat-payment-callback-service",
     "Author": "Adam Zhou",
     "Email": "adamzhouisnothing@gmail.com",
     "Year": "2023",
-    "Description": "Wechat Pay Callback Service",
+    "Description": "Wechat Payment Callback Service",
     "License": [
         "Apache Software License 2.0",
         "MIT",
@@ -12,10 +12,10 @@
 
     "RepoBase": "github.com",
     "RepoGroup": "amazingchow",
-    "RepoName": "wechat-pay-callback-service",
-    "ServiceName": "wechat-pay-callback-service",
-    "ServiceNameInUnderScoreCase": "wechat_pay_callback_service",
-    "ServiceNameInCamelCase": "WechatPayCallbackService",
+    "RepoName": "wechat-payment-callback-service",
+    "ServiceName": "wechat-payment-callback-service",
+    "ServiceNameInUnderScoreCase": "wechat_payment_callback_service",
+    "ServiceNameInCamelCase": "WechatPaymentCallbackService",
     "ServiceGrpcPort": 18887,
     "ServiceHttpPort": 18888,
     "ServiceMetricsPort": 18889

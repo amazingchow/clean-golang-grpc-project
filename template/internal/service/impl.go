@@ -13,9 +13,9 @@ func (impl *{{ServiceNameInCamelCase}}Impl) Ping(
 	resp *proto_gens.PongResponse, err error) {
 
 	_logger := logger.GetGlobalLogger().
-		WithField("method", "Ping").
 		WithField(common.LoggerKeyTraceId, ctx.Value(common.ContextKeyTraceId).(string)).
-		WithField(common.LoggerKeySpanId, ctx.Value(common.ContextKeySpanId).(string))
+		WithField(common.LoggerKeySpanId, ctx.Value(common.ContextKeySpanId).(string)).
+		WithField(common.LoggerKeyEvent, "Ping")
 	_ = _logger
 
 	resp = &proto_gens.PongResponse{}

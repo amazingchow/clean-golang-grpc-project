@@ -16,42 +16,42 @@ import (
 )
 
 func RecoverPanicAndReportLatencyUnaryInterceptor(
-	ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (
+	ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, rpcHandler grpc.UnaryHandler) (
 	resp interface{}, err error) {
 
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		err = status.Error(codes.InvalidArgument, "request header must be provided")
+		err = status.Error(codes.InvalidArgument, "Request header must be provided.")
 		return
 	}
 
-	traceId := uuid.New().String()
-	spanId := uuid.New().String()
+	tid := uuid.New().String()
+	sid := uuid.New().String()
 	if v, ok := md[common.ReqHeaderKeyRequestId]; ok {
-		traceId = v[0]
+		tid = v[0]
 	}
-	ctx = context.WithValue(ctx, common.ContextKeyTraceId, traceId)
-	ctx = context.WithValue(ctx, common.ContextKeySpanId, spanId)
+	ctx = context.WithValue(ctx, common.ContextKeyTraceId, tid)
+	ctx = context.WithValue(ctx, common.ContextKeySpanId, sid)
 
-	start := time.Now()
+	st := time.Now()
 	defer func() {
 		if e := recover(); e != nil {
 			logger.GetGlobalLogger().
-				WithField(common.LoggerKeyTraceId, traceId).
-				WithField(common.LoggerKeySpanId, spanId).
+				WithField(common.LoggerKeyTraceId, tid).
+				WithField(common.LoggerKeySpanId, sid).
 				WithField("stack", string(debug.Stack())).
 				WithError(e.(error)).
-				Error("recover from internal server panic")
-			err = status.Error(codes.Internal, "recover from internal server panic")
+				Error("Recover from internal server panic.")
+			err = status.Error(codes.Internal, "Recover from internal server panic.")
 		}
 
-		end := time.Now()
+		ed := time.Now()
 		logger.GetGlobalLogger().
-			WithField(common.LoggerKeyTraceId, traceId).
-			WithField(common.LoggerKeySpanId, spanId).
-			WithField("latency", end.Sub(start).Milliseconds()).
+			WithField(common.LoggerKeyTraceId, tid).
+			WithField(common.LoggerKeySpanId, sid).
+			WithField("latency", ed.Sub(st).Milliseconds()).
 			Debug("request latency")
 	}()
 
-	return handler(ctx, req)
+	return rpcHandler(ctx, req)
 }

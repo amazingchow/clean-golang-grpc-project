@@ -8,20 +8,18 @@ import (
 )
 
 const (
-	namespace = "{{RepoGroup}}"
-	subsystem = "{{RepoName}}"
+	NAMESPACE = "{{RepoGroup}}"
+	SUBSYSTEM = "{{RepoName}}"
 )
 
 var (
-	_MetricsList = []prometheus.Collector{
-	}
+	_MetricsList = []prometheus.Collector{}
 )
 
 var _RegisterMetricsOnce sync.Once
 
 // Register all metrics.
 func Register() {
-	// Register the metrics.
 	_RegisterMetricsOnce.Do(func() {
 		for _, metrics := range _MetricsList {
 			prometheus.MustRegister(metrics)

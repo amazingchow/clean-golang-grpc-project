@@ -3,15 +3,12 @@ package main
 import (
 	"context"
 	"flag"
-	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
-	"time"
 
-	"github.com/evalphobia/logrus_sentry"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sirupsen/logrus"
 
@@ -22,20 +19,16 @@ import (
 )
 
 var (
-	_ConfigFile = flag.String("conf", "./etc/{{ServiceName}}-dev.json", "the config file")
+	_ConfigFile = flag.String("conf", "./etc/{{ServiceName}}-dev.json", "config file path")
 )
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
+	// Seed random number generator, is deprecated since Go 1.20.
+	// rand.Seed(time.Now().UnixNano())
 
 	flag.Parse()
-
-	var conf config.Config
-	config.LoadConfigFileOrPanic(*_ConfigFile, &conf)
-	config.SetConfig(&conf)
-
-	prepareEnv(conf)
-	defer cleanEnv(conf)
+	config.LoadConfigFileOrPanic(*_ConfigFile)
+	defer SetupTeardown()()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -52,61 +45,29 @@ func main() {
 	close(stopCh)
 }
 
-func setGlobalLogger(conf config.Config) {
-	var _logger *logrus.Logger
-	var _level logrus.Level
-	var err error
-
-	if len(conf.LogLevel) > 0 {
-		_level, err = logrus.ParseLevel(conf.LogLevel)
-		if err != nil {
-			_level = logrus.DebugLevel
-		}
-	} else {
-		_level = logrus.DebugLevel
+func SetupTeardown() func() {
+	logrus.Debug("Run service-initialization.")
+	SetupRuntimeEnvironment(config.GetConfig())
+	return func() {
+		logrus.Debug("Run service-cleanup.")
+		ClearRuntimeEnvironment(config.GetConfig())
 	}
-
-	_logger = logrus.New()
-	_logger.SetLevel(_level)
-	if conf.LogPretty {
-		_logger.SetFormatter(&logrus.JSONFormatter{
-			DisableHTMLEscape: true,
-			PrettyPrint:       true,
-		})
-	} else {
-		_logger.SetFormatter(&logrus.TextFormatter{})
-	}
-
-	if len(conf.LogSentryDSN) > 0 {
-		hook, err := logrus_sentry.NewSentryHook(conf.LogSentryDSN, []logrus.Level{
-			logrus.PanicLevel,
-			logrus.FatalLevel,
-			logrus.ErrorLevel,
-		})
-		if err != nil {
-			logrus.WithError(err).Fatal("Failed to set sentry hook for logrus logger.")
-		} else {
-			_logger.Hooks.Add(hook)
-		}
-	}
-
-	logger.SetGlobalLogger(_logger, conf.ServiceName)
 }
 
-func prepareEnv(conf config.Config) {
+func SetupRuntimeEnvironment(conf *config.Config) {
+	logger.SetGlobalLogger(conf)
 	if len(conf.ServiceMetricsEndpoint) > 0 {
-		go runMetricsServer(conf.ServiceMetricsEndpoint)
+		go func() {
+			metrics.Register()
+			http.Handle("/metrics", promhttp.Handler())
+			logger.GetGlobalLogger().Error(http.ListenAndServe(conf.ServiceMetricsEndpoint, nil))
+		}()
 	}
-	setGlobalLogger(conf)
+	// Add more service initialization here.
 	service.Setup{{ServiceNameInCamelCase}}Impl()
 }
 
-func cleanEnv(conf config.Config) {
+func ClearRuntimeEnvironment(_ *config.Config) {
 	service.Close{{ServiceNameInCamelCase}}Impl()
-}
-
-func runMetricsServer(ep string) {
-	metrics.Register()
-	http.Handle("/metrics", promhttp.Handler())
-	logger.GetGlobalLogger().Error(http.ListenAndServe(ep, nil))
+	// Add more service cleanup here.
 }

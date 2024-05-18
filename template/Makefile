@@ -32,7 +32,7 @@ ifeq ($(gc_debug), 1)
 endif
 
 .PHONY: build
-build: clean $(ALL_TARGETS) ### Build the service.
+build: clean pb-fmt init $(ALL_TARGETS) ### Build the service.
 
 $(TARGETS): $(SRC)
 	@GOOS=linux GOARCH=amd64 go build -mod vendor $(BUILD_FLAGS) $(PWD)/cmd/$@
@@ -49,13 +49,13 @@ test: ### Run the tests.
 	@env CI="true" go test -count=1 -v -p 1 $(shell go list ./... | grep -v /igspb | grep -v /cmd) -coverprofile unit_test_coverage.txt || true
 
 .PHONY: local_run
-local_run: pb-fmt ### Run your service locally.
+local_run: build ### Run your service locally.
 	@./${SERVICE} -conf ./etc/${SERVICE}-dev.json 2>&1 | tee dev.log
 
 IMAGE_VERSION := ${VERSION}-${GIT_HASH}
 
 .PHONY: image
-image: ### Build your service image.
+image: build ### Build your service image.
 	@docker build -f ./devops/docker/Dockerfile -t infra-${SERVICE}:${IMAGE_VERSION} .
 
 .PHONY: check_compose
