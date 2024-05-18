@@ -25,6 +25,7 @@ var (
 func main() {
 	// Seed random number generator, is deprecated since Go 1.20.
 	// rand.Seed(time.Now().UnixNano())
+	logrus.SetLevel(logrus.DebugLevel)
 
 	flag.Parse()
 	config.LoadConfigFileOrPanic(*_ConfigFile)
