@@ -15,7 +15,7 @@ import (
 	"{{RepoBase}}/{{RepoGroup}}/{{RepoName}}/internal/common/logger"
 	"{{RepoBase}}/{{RepoGroup}}/{{RepoName}}/internal/proto_gens"
 	"{{RepoBase}}/{{RepoGroup}}/{{RepoName}}/internal/service"
-	"{{RepoBase}}/{{RepoGroup}}/{{RepoName}}/internal/service/interceptor"
+	interceptors "{{RepoBase}}/{{RepoGroup}}/{{RepoName}}/internal/service/grpc_interceptors"
 )
 
 const (
@@ -48,7 +48,7 @@ func setupGrpcService(_ context.Context, wg *sync.WaitGroup, stopCh chan struct{
 			Timeout: _DefaultSrvKeepaliveTimeout,
 		}),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
-			interceptor.RecoverPanicAndReportLatencyUnaryInterceptor,
+			interceptors.RecoverPanicAndReportLatencyUnaryInterceptor,
 		)),
 	}
 	// Create a gRPC server.
@@ -63,14 +63,14 @@ func setupGrpcService(_ context.Context, wg *sync.WaitGroup, stopCh chan struct{
 		// Listen on the given address and port.
 		if err := grpcServer.Serve(l); err != nil {
 			logger.GetGlobalLogger().
-				WithError(err).Error("Failed to serve {{ServiceNameInCamelCase}}.")
+				WithError(err).Error("Failed to serve grpc service.")
 		}
 	}()
-	logger.GetGlobalLogger().Infof("Server started, listening on %s.",
+	logger.GetGlobalLogger().Infof("gRPC Server started, listening on %s.",
 		config.GetConfig().ServiceGrpcEndpoint)
 	logger.GetGlobalLogger().Infof("Started {{ServiceNameInCamelCase}} Server 🤘.")
 
 	<-stopCh
 	grpcServer.GracefulStop()
-	logger.GetGlobalLogger().Warning("Stopped {{ServiceNameInCamelCase}} Server.")
+	logger.GetGlobalLogger().Warning("Stopped grpc service.")
 }
