@@ -18,7 +18,7 @@ function run
 		-u `id -u` \
 		-e PROTOC_INSTALL=/go \
 		-w /go/src/${code_root} \
-		proto-tools:libprotoc-3.24.3_golang-1.21 sh /go/src/${code_root}/scripts/compile_pb.sh
+		proto-tools:libprotoc-3.24.3_golang-1.21 bash /go/src/${code_root}/scripts/compile_pb.sh
 }
 
 run $@
