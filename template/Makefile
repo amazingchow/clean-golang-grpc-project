@@ -46,7 +46,7 @@ clean: ### Clean the service.
 
 .PHONY: test
 test: ### Run the tests.
-	@env CI="true" go test -count=1 -v -p 1 $(shell go list ./... | grep -v /igspb | grep -v /cmd) -coverprofile unit_test_coverage.txt || true
+	@env CI="true" go test -count=1 -v -p 1 $(shell go list ./... | grep -v /cmd) -coverprofile unit_test_coverage.txt || true
 
 .PHONY: local_run
 local_run: build ### Run your service locally.
